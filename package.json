@@ -1,0 +1,25 @@
+{
+  "name": "new-orleans-events-nostr-bot",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "A bot that scrapes events from [nola.show](https://www.nola.show/) and publishes them as Nostr events using NIP-52 format, making them compatible with clients like [Plektos](https://github.com/derekross/plektos).",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node index.js --once"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@noble/curves": "^2.0.1",
+    "@noble/hashes": "^2.0.1",
+    "cheerio": "^1.2.0",
+    "dotenv": "^17.3.1",
+    "ngeohash": "^0.6.3",
+    "node-cron": "^4.2.1",
+    "node-fetch": "^3.3.2",
+    "nostr-tools": "^2.23.1",
+    "ws": "^8.19.0"
+  }
+}
