@@ -1,0 +1,4 @@
+node_modules/
+.env
+published_events.json
+published_events.json.backup
