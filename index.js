@@ -11,7 +11,7 @@ import cron from 'node-cron';
 import { scrapeEvents } from './scraper.js';
 import { publishEvent, publishSummaryNote, sleep } from './nostr.js';
 
-console.log("Starting NOLA Nostr Bot logic...");
+console.log("Starting Nostr Event Bot...");
 
 async function runBot() {
     console.log(`[${new Date().toISOString()}] Bot run triggered.`);
