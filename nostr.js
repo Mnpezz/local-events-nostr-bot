@@ -140,9 +140,10 @@ export async function publishEvent(eventData) {
         }
 
         // Add a hashtag so it easily groups on Nostr clients
-        tags.push(["t", "nola"]);
-        tags.push(["t", "neworleans"]);
-        tags.push(["t", "music"]);
+        const eventTags = eventData.tags || ["nola", "neworleans", "music"];
+        for (const t of eventTags) {
+            tags.push(["t", t]);
+        }
 
         // Resolve whether this is an update and handle created_at strictly
         const isUpdate = publishedEvents.hasOwnProperty(identifier);
@@ -158,7 +159,7 @@ export async function publishEvent(eventData) {
             kind: 31923, // Time-Based Calendar Event (NIP-52)
             created_at: createdAt,
             tags: tags,
-            content: `Event from nola.show\n📍 Venue: ${eventData.venue}\n🎟️ Price: ${eventData.price || "TBD"}\n🔗 ${eventData.url || "https://www.nola.show/"}`,
+            content: `Event from ${eventData.source || "nola.show"}\n📍 Venue: ${eventData.venue}\n🎟️ Price: ${eventData.price || "TBD"}\n🔗 ${eventData.url || "https://www.nola.show/"}`,
         };
 
         // Create a hash of the event's data + tags to detect changes
@@ -202,11 +203,7 @@ export async function publishSummaryNote(addedCount, updatedCount) {
     let pool;
     try {
         const sk = getPrivateKeyBytes();
-
-        const nolaUrl = "https://www.nola.show";
-        const plektosUrl = "https://plektos.app";
-
-        const content = `🤖 I just finished reading the latest listings from:\n${nolaUrl}\n\n📈 Added: ${addedCount} new event(s)\n🔄 Updated: ${updatedCount} existing event(s)\n\nCheck out Plektos for the latest live music schedules across New Orleans! 🎷🎺\n\n📌 View Map:\n${plektosUrl}\n\n#nola #neworleans #livemusic #events`;
+        const content = `🤖 I just finished reading the latest event listings!\n\n📈 Added: ${addedCount} new event(s)\n🔄 Updated: ${updatedCount} existing event(s)\n\nCheck out Plektos for the latest live music schedules and event maps!\n\n📌 View Map:\nhttps://plektos.app\n\n#livemusic #events #nola #nashville`;
 
         const event = {
             kind: 1, // Short Text Note

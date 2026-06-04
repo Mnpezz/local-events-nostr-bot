@@ -1,13 +1,23 @@
-# NOLA Nostr Bot (Node.js)
+# Multi-City Nostr Event Bot (Node.js)
 
-A bot that scrapes events from [nola.show](https://www.nola.show/) and publishes them as Nostr events using NIP-52 format, making them compatible with clients like [Plektos](https://github.com/derekross/plektos).
+A modular, extensible bot that scrapes local events from multiple cities/sources (currently supporting **New Orleans** and **Nashville**) and publishes them as Nostr events using the NIP-52 calendar format. This makes them fully compatible with calendar clients like [Plektos](https://github.com/derekross/plektos).
+
+This repository is designed to be a public example. You can easily fork it, add a scraper plugin for your own city, and start your own regional events bot!
+
+---
 
 ## Features
 
-- 🎯 **Automatic Event Scraping**: Scrapes events from the nola.show JSON API.
-- 📅 **NIP-52 Compatible**: Creates calendar events that work with Plektos and other Nostr clients.
-- 🔄 **Scheduled Updates**: Automatically runs every 6 hours using `node-cron`.
-- 🚀 **Modern Stack**: Built with Node.js, `nostr-tools`, and `node-fetch`.
+- 🏙️ **Multi-City Architecture**: Support for multiple scraper plugins running in parallel.
+- 🎯 **Automatic Event Scraping**:
+  - **New Orleans**: Fetches JSON API events from [nola.show](https://www.nola.show/).
+  - **Nashville**: Scrapes and parses HTML calendar listings from [nashvillego.com](https://nashvillego.com/calendar) using Cheerio.
+- 📅 **NIP-52 Compatible**: Creates Time-Based Calendar Events (`kind: 31923`) that display beautifully on Nostr calendar clients.
+- 🏷️ **Dynamic Tagging**: Automatically applies city-specific hashtags (e.g., `#nola`, `#nashville`, `#musiccity`) and geohash coordinates.
+- 🔄 **Scheduled Updates**: Runs every 6 hours automatically via `node-cron`.
+- 🚀 **Modern Stack**: Built with Node.js, `nostr-tools`, `cheerio`, and `node-fetch`.
+
+---
 
 ## Installation
 
@@ -26,80 +36,94 @@ A bot that scrapes events from [nola.show](https://www.nola.show/) and publishes
 - `NOSTR_PRIVATE_KEY`: Your Nostr private key (hex string) for signing events.
 - `NOSTR_RELAYS`: Comma-separated list of Nostr relays to publish to (defaults to `wss://relay.damus.io,wss://relay.snort.social`).
 
+---
+
 ## Usage
 
-You can run the bot in two modes. 
+You can run the bot in two modes:
+
+**Run Once (Dry Run / Testing)**
+This executes all scrapers, attempts to publish new/updated events to the configured relays, and then exits immediately.
+```bash
+npm test
+```
+*(equivalent to running `node index.js --once`)*
 
 **Run Continuously as a Daemon**
-This will start the bot and schedule it to run immediately, and then every 6 hours thereafter.
+This starts the bot, runs it immediately, and schedules it to run every 6 hours thereafter.
 ```bash
 npm start
 ```
-*(You may want to run this using a process manager like `pm2` or `forever` in production).*
+*(For production deployments, running this under a process manager like `pm2` or `forever` is recommended).*
 
-**Run Once (Dry Run / Testing)**
-This will execute the scraper, attempt to publish to the configured relays, and then exit immediately.
-```bash
-node index.js --once
+---
+
+## Architecture & Directory Structure
+
+The bot separates concerns between data ingestion (scraping), coordination, and publishing:
+
+```text
+├── index.js              # Entrypoint (manages scheduler / run-once flags)
+├── scraper.js            # Coordinator (aggregates all city scrapers)
+├── scrapers/             # Directory containing scraper plugins
+│   ├── nola_show.js      # New Orleans API scraper
+│   └── nashville_go.js   # Nashville Cheerio HTML scraper
+├── nostr.js              # Nostr client logic (NIP-52 publishing)
+├── venue_images.json     # Mapping of venues to official image/logo URLs
+└── scripts/              # Independent test and profile management scripts
 ```
 
-## Event Format
+---
 
-Events are published using the NIP-52 calendar event format:
+## Adding Custom Cities & Scraper Plugins
 
-```json
-{
-  "kind": 31922,
-  "content": "Event from nola.show\nPrice: $10",
-  "tags": [
-    ["d", "event-name-venue-slug"],
-    ["location", "Venue Name"],
-    ["price", "$10"],
-    ["source", "nola.show"],
-    ["start", "1704142800"],
-    ["name", "Event Name"]
-  ]
-}
-```
+To add a new city or calendar source:
 
-## Adding Custom Sources
-
-You can easily adapt this bot to scrape and publish events from other websites or APIs. 
-
-### 1. Event Data Schema
-
-Any scraper you build should output a list of event objects following this structure:
+### 1. Build Your Scraper
+Create a new file in the `scrapers/` directory (e.g., `scrapers/chicago_events.js`). It must export an async function named `scrapeEvents` returning an array of objects matching this schema:
 
 ```javascript
 {
   name: "Event Name",             // Name of the event (required)
   venue: "Venue Name",            // Venue name or location description (required)
-  datetime: "2026-06-13T21:00:00Z",// ISO 8601 string in UTC or with timezone (required)
-  price: "Tickets: $15, Door: $25",// Price description (optional)
-  url: "https://eventbrite.com/...",// Link to tickets or detail page (optional)
-  latitude: 29.944186,            // Latitude coordinate (optional)
-  longitude: -90.065689,          // Longitude coordinate (optional)
-  source: "my-custom-source"      // Identifier of the data source (optional)
+  datetime: "2026-06-13T21:00:00Z",// ISO 8601 string in UTC (required)
+  price: "Tickets: $15",          // Price description (optional)
+  url: "https://site.com/tickets",// Link to tickets or detail page (optional)
+  latitude: 41.8781,              // Latitude coordinate (optional)
+  longitude: -87.6298,            // Longitude coordinate (optional)
+  source: "chicagoevents.com",    // Identifier of the data source (optional)
+  tags: ["chicago", "music", "events"] // Custom hashtags for Nostr (optional)
 }
 ```
 
-### 2. Hooking Up Your Scraper
+### 2. Register Your Scraper
+Import and run your scraper in `scraper.js`:
 
-1. Create a scraper file (e.g., `my_scraper.js`) that exports an async function returning an array of the event objects above.
-2. In `index.js`, import your custom scraper and run it:
-   ```javascript
-   import { scrapeMyEvents } from './my_scraper.js';
-   // ...
-   const customEvents = await scrapeMyEvents();
-   ```
-3. Loop through the events and publish them using `publishEvent(event)` from `./nostr.js`:
-   ```javascript
-   import { publishEvent } from './nostr.js';
-   // ...
-   for (const event of customEvents) {
-       await publishEvent(event);
-   }
-   ```
+```javascript
+import { scrapeEvents as scrapeChicago } from './scrapers/chicago_events.js';
+
+export async function scrapeEvents() {
+    console.log("Starting multi-city event scraping...");
+    const nolaEvents = await scrapeNola();
+    const nashvilleEvents = await scrapeNashville();
+    const chicagoEvents = await scrapeChicago(); // 1. Run your new scraper
+    
+    const combinedEvents = [
+        ...nolaEvents,
+        ...nashvilleEvents,
+        ...chicagoEvents // 2. Add events to the aggregate list
+    ];
+    
+    combinedEvents.sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime());
+    return combinedEvents;
+}
+```
+
+### 3. Add Venue Images (Optional)
+If you want events at specific venues to have distinct images on Nostr clients, add them to `venue_images.json`:
+```json
+"House of Blues Chicago": "https://url-to-logo.png"
+```
 
 ---
 
@@ -120,6 +144,7 @@ The `scripts/` directory contains helper tools for managing the bot and verifyin
 node scripts/publish_profile.js
 ```
 
+---
+
 ## License
 MIT
-
