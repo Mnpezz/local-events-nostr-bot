@@ -107,12 +107,15 @@ export async function publishEvent(eventData) {
             ["location", eventData.venue], // Human readable address
         ];
 
-        // Apply fallback or venue-specific image
-        let imageUrl = venueImages["default"];
-        for (const [venueName, url] of Object.entries(venueImages)) {
-            if (venueName !== "default" && eventData.venue.toLowerCase().includes(venueName.toLowerCase())) {
-                imageUrl = url;
-                break;
+        // Prioritize event-specific image, falling back to venue-specific or default
+        let imageUrl = eventData.image;
+        if (!imageUrl) {
+            imageUrl = venueImages["default"];
+            for (const [venueName, url] of Object.entries(venueImages)) {
+                if (venueName !== "default" && eventData.venue.toLowerCase().includes(venueName.toLowerCase())) {
+                    imageUrl = url;
+                    break;
+                }
             }
         }
 
