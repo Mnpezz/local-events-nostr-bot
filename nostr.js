@@ -203,7 +203,7 @@ export async function publishSummaryNote(addedCount, updatedCount) {
     let pool;
     try {
         const sk = getPrivateKeyBytes();
-        const content = `🤖 I just finished reading the latest event listings!\n\n📈 Added: ${addedCount} new event(s)\n🔄 Updated: ${updatedCount} existing event(s)\n\nCheck out Plektos for the latest live music schedules and event maps!\n\n📌 View Map:\nhttps://plektos.app\n\n#livemusic #events #nola #nashville`;
+        const content = `🤖 I just finished reading the latest event listings!\n\n📈 Added: ${addedCount} new event(s)\n🔄 Updated: ${updatedCount} existing event(s)\n\nCheck out Plektos for the latest live music schedules and event maps!\n\n📌 View Map:\nhttps://plektos.app\n\n#livemusic #events #nola #nashville #philly`;
 
         const event = {
             kind: 1, // Short Text Note

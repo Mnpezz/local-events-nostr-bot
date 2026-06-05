@@ -1,6 +1,6 @@
 # Multi-City Nostr Event Bot (Node.js)
 
-A modular, extensible bot that scrapes local events from multiple cities/sources (currently supporting **New Orleans** and **Nashville**) and publishes them as Nostr events using the NIP-52 calendar format. This makes them fully compatible with calendar clients like [Plektos](https://github.com/derekross/plektos).
+A bot that scrapes local events from multiple cities/sources (currently supporting **New Orleans**, **Nashville**, and **Philadelphia**) and publishes them as Nostr events using the NIP-52 calendar format. This makes them fully compatible with calendar clients like [Plektos](https://github.com/derekross/plektos).
 
 This repository is designed to be a public example. You can easily fork it, add a scraper plugin for your own city, and start your own regional events bot!
 
@@ -12,6 +12,7 @@ This repository is designed to be a public example. You can easily fork it, add 
 - 🎯 **Automatic Event Scraping**:
   - **New Orleans**: Fetches JSON API events from [nola.show](https://www.nola.show/).
   - **Nashville**: Scrapes and parses HTML calendar listings from [nashvillego.com](https://nashvillego.com/calendar) using Cheerio.
+  - **Philadelphia**: Scrapes and extracts structured events from [ourphilly.org](https://www.ourphilly.org/this-weekend-in-philadelphia) Next.js hydration payload.
 - 📅 **NIP-52 Compatible**: Creates Time-Based Calendar Events (`kind: 31923`) that display beautifully on Nostr calendar clients.
 - 🏷️ **Dynamic Tagging**: Automatically applies city-specific hashtags (e.g., `#nola`, `#nashville`, `#musiccity`) and geohash coordinates.
 - 🔄 **Scheduled Updates**: Runs every 6 hours automatically via `node-cron`.
@@ -67,7 +68,8 @@ The bot separates concerns between data ingestion (scraping), coordination, and 
 ├── scraper.js            # Coordinator (aggregates all city scrapers)
 ├── scrapers/             # Directory containing scraper plugins
 │   ├── nola_show.js      # New Orleans API scraper
-│   └── nashville_go.js   # Nashville Cheerio HTML scraper
+│   ├── nashville_go.js   # Nashville Cheerio HTML scraper
+│   └── philly_our.js     # Philadelphia ourphilly.org scraper
 ├── nostr.js              # Nostr client logic (NIP-52 publishing)
 ├── venue_images.json     # Mapping of venues to official image/logo URLs
 └── scripts/              # Independent test and profile management scripts
