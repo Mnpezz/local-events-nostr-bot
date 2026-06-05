@@ -131,6 +131,7 @@ export async function scrapeEvents() {
                     latitude: item.latitude || null,
                     longitude: item.longitude || null,
                     source: 'ourphilly.org',
+                    image: item.image_url || null,
                     tags: ['philly', 'philadelphia', 'music', 'events']
                 });
             }
